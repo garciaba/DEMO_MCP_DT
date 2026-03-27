@@ -19,4 +19,7 @@ export const env = {
 
   // Cookie signing
   COOKIE_SECRET: getEnv('COOKIE_SECRET', crypto.randomBytes(32).toString('hex')),
+
+  // Production CORS — allowed origin (e.g. 'https://myapp.example.com')
+  ALLOWED_ORIGIN: getEnv('ALLOWED_ORIGIN', ''),
 } as const;

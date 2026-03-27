@@ -3,6 +3,8 @@ import fastifyCors from '@fastify/cors';
 import fastifyCookie from '@fastify/cookie';
 import fastifyMultipart from '@fastify/multipart';
 import fastifyStatic from '@fastify/static';
+import helmet from '@fastify/helmet';
+import rateLimit from '@fastify/rate-limit';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { authRoutes } from './routes/auth.js';
@@ -26,9 +28,20 @@ export async function buildApp() {
     },
   });
 
-  // ─── Plugins ──────────────────────────────────────────────
+  // ─── Security plugins ─────────────────────────────────────
+  await app.register(helmet, {
+    contentSecurityPolicy: env.NODE_ENV === 'production' ? undefined : false,
+  });
+
+  await app.register(rateLimit, {
+    max: 100,        // 100 requests per window
+    timeWindow: '1 minute',
+  });
+
   await app.register(fastifyCors, {
-    origin: env.NODE_ENV === 'development' ? 'http://localhost:5173' : true,
+    origin: env.NODE_ENV === 'development'
+      ? 'http://localhost:5173'
+      : (env.ALLOWED_ORIGIN || false),   // explicit origin in prod, deny if unset
     credentials: true,
   });
 

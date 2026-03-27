@@ -7,7 +7,7 @@ dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 dotenv.config({ path: path.resolve(process.cwd(), '../.env') });
 
 // ⚠️ Telemetry MUST be imported before any other app module
-// so OpenLLMetry can patch LLM libraries before they load.
+// so OTel instrumentations can patch before they load.
 import './telemetry.js';
 
 import { buildApp } from './app.js';
