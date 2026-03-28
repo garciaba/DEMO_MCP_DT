@@ -14,9 +14,6 @@ import {
   ATTR_GEN_AI_USAGE_OUTPUT_TOKENS,
   ATTR_GEN_AI_OUTPUT_TYPE,
   ATTR_GEN_AI_CONVERSATION_ID,
-  ATTR_GEN_AI_SYSTEM_INSTRUCTIONS,
-  ATTR_GEN_AI_INPUT_MESSAGES,
-  ATTR_GEN_AI_OUTPUT_MESSAGES,
   ATTR_GEN_AI_TOOL_NAME,
   ATTR_GEN_AI_TOOL_TYPE,
   ATTR_GEN_AI_TOOL_CALL_ID,
@@ -197,25 +194,19 @@ export async function chatRoutes(app: FastifyInstance) {
           },
         });
 
-        // Opt-In: record system instructions on first round
+        // Dynatrace convention: gen_ai.prompt.N.content for each input message
         if (round === 0) {
-          const systemMsgs = augmentedMessages.filter(m => m.role === 'system');
-          if (systemMsgs.length > 0) {
+          let promptIdx = 0;
+          for (const m of augmentedMessages) {
             llmSpan.setAttribute(
-              ATTR_GEN_AI_SYSTEM_INSTRUCTIONS,
-              JSON.stringify(systemMsgs.map(m => ({ type: 'text', content: m.content.slice(0, 500) }))),
+              `gen_ai.prompt.${promptIdx}.role`,
+              m.role,
             );
-          }
-          // Record user input messages (truncated for safety)
-          const userMsgs = augmentedMessages.filter(m => m.role === 'user');
-          if (userMsgs.length > 0) {
             llmSpan.setAttribute(
-              ATTR_GEN_AI_INPUT_MESSAGES,
-              JSON.stringify(userMsgs.map(m => ({
-                role: m.role,
-                parts: [{ type: 'text', content: m.content.slice(0, 500) }],
-              }))),
+              `gen_ai.prompt.${promptIdx}.content`,
+              m.content.slice(0, 500),
             );
+            promptIdx++;
           }
         }
 
@@ -330,16 +321,11 @@ export async function chatRoutes(app: FastifyInstance) {
         llmSpan.setAttribute(ATTR_GEN_AI_USAGE_INPUT_TOKENS, Math.round(inputChars / 4));
         llmSpan.setAttribute(ATTR_GEN_AI_USAGE_OUTPUT_TOKENS, Math.round(outputText.length / 4));
 
-        // Opt-In: record output messages (truncated)
+        // Dynatrace convention: gen_ai.completion.0.content for output
         if (outputText) {
-          llmSpan.setAttribute(
-            ATTR_GEN_AI_OUTPUT_MESSAGES,
-            JSON.stringify([{
-              role: 'assistant',
-              parts: [{ type: 'text', content: outputText.slice(0, 1000) }],
-              finish_reason: finishReason,
-            }]),
-          );
+          llmSpan.setAttribute('gen_ai.completion.0.role', 'assistant');
+          llmSpan.setAttribute('gen_ai.completion.0.content', outputText.slice(0, 1000));
+          llmSpan.setAttribute('gen_ai.completion.0.finish_reason', finishReason ?? 'unknown');
         }
 
         llmSpan.end();
