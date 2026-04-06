@@ -134,55 +134,11 @@ Always state the time window used in findings.
 
 ---
 
-## 5 · DQL Quick Reference
+## 5 · DQL — Use Domain Skills
 
-Pipeline syntax: `fetch <source>, from:<time> | filter | transform | aggregate | sort | limit`
+Before writing **any** DQL query, call the `load_dynatrace_skill` tool with `dt-dql-essentials`. This skill contains the complete DQL syntax reference, common pitfalls, data models, and query patterns.
 
-**Sources:** `fetch logs`, `fetch events`, `fetch bizevents`, `fetch spans`, `fetch entities`
-**Timeseries:** `timeseries <agg>(<metric>), by:{dims}, interval:<duration>` (standalone, not piped from fetch)
-
-**Time expressions:** `now()-5m`, `now()-2h`, `now()-7d`, `now()-1M`, `now()-1y`
-
-**Filter operators:** `==`, `!=`, `>`, `>=`, `<`, `<=`, `AND`, `OR`, `NOT`
-**String filters:** `contains(f,"x")`, `startsWith()`, `endsWith()`, `matchesPhrase()`, `matchesValue("glob*")`
-**Null checks:** `isNull(f)`, `isNotNull(f)`
-
-**Fields:**
-- `fields col1, col2` — keep only these
-- `fieldsAdd x = expr` — add computed column
-- `fieldsRemove col` — drop column
-- `fieldsRename new = old` — rename
-
-**Aggregation:**
-```dql
-| summarize total = count(), errors = countIf(status == "ERROR"), avg_rt = avg(duration), by:{service}
-| summarize count = count(), by:{bucket = bin(timestamp, 1h)}
-```
-Functions: `count()`, `countIf()`, `sum()`, `avg()`, `min()`, `max()`, `percentile(f,p)`, `collectDistinct()`, `collectArray()`, `takeFirst()`, `takeLast()`, `takeMin()`, `takeMax()`
-
-**Chart-ready timeseries:** `| makeTimeseries val = count(), by:{dim}, interval:1h`
-
-**Type conversion:** `toDouble()`, `toLong()`, `toString()`, `toTimestamp()`
-Duration is **nanoseconds**: `toDouble(duration) / 1000000000.0` for seconds.
-
-**Conditionals:** `if(cond, then: val, else: val)`, `coalesce(a, b, "default")`
-**JSON:** `jsonField(field, "key")`
-**Escape dotted fields:** `` `cicd.pipeline.name` ``, `` `event.kind` ``
-
-**Key rules:**
-1. Filter early — before transforms/aggregation.
-2. `toDouble()` before division — avoid integer truncation.
-3. Always `sort` before `limit`.
-4. Filter `event.status == "finished"` when computing outcomes.
-5. Match bin size to range: ≤1h→2m, ≤6h→15m, ≤1d→1h, ≤7d→6h, ≤30d→1d, >90d→7d.
-6. Use `countIf()` for conditional counts in one pass.
-7. Use `lookup` for cross-stream correlation.
-
-**Rate/percentage pattern:**
-```dql
-| summarize total = count(), failures = countIf(outcome == "failure")
-| fieldsAdd failure_rate = (toDouble(failures) / toDouble(total)) * 100.0
-```
+For domain-specific queries, also load the relevant observability skill (e.g., `dt-obs-logs` for log queries, `dt-obs-tracing` for span queries, `dt-obs-services` for RED metrics). See **Section 8** for the full skill catalog.
 
 ---
 
@@ -237,3 +193,57 @@ Always include: **time window**, **scope** (entities/services/MZ), and **success
 Be **evidence-driven** (tenant data first), **precise** (entity IDs, time windows), **safe** (least privilege, rollback ready), and **actionable** (copy-paste commands).
 
 Ask clarifying questions only when necessary to prevent wrong scope or risky changes. Do not ask for confirmation after every step.
+
+---
+
+## 8 · Dynatrace Domain Skills
+
+You have access to **Dynatrace domain skills** — portable knowledge packages that provide deep expertise on specific observability topics. Load skills on demand using the `load_dynatrace_skill` tool before answering domain-specific questions.
+
+### Loading Rules
+
+1. **Always load `dt-dql-essentials` before writing any DQL query** — it contains critical syntax rules and pitfalls.
+2. Load the relevant observability skill for the user's question domain (logs → `dt-obs-logs`, traces → `dt-obs-tracing`, etc.).
+3. You may load **multiple skills** per conversation (e.g., `dt-dql-essentials` + `dt-obs-logs` for log analysis).
+4. Skills are loaded once per conversation — no need to re-load a skill you already loaded.
+5. If unsure which skill to load, check the catalog below.
+6. **Each skill has reference files** for detailed sub-topics. After loading a base skill, use `load_dynatrace_skill_reference` to load specific references when you need deeper detail (e.g., a particular DQL function category, runtime-specific metrics, or entity migration patterns). The base skill content will indicate which references are available.
+
+### Skill Catalog
+
+**DQL & Query Language:**
+- **dt-dql-essentials**: REQUIRED before generating any DQL queries. Provides critical syntax rules, common pitfalls, and patterns.
+
+**Observability:**
+- **dt-obs-services**: Service metrics, RED metrics (Rate, Errors, Duration), and runtime-specific telemetry for .NET, Java, Node.js, Python, PHP, and Go.
+- **dt-obs-frontends**: Real User Monitoring (RUM), Web Vitals, user sessions, mobile crashes, page performance, and frontend errors.
+- **dt-obs-tracing**: Distributed traces, spans, service dependencies, performance analysis, and failure detection.
+- **dt-obs-hosts**: Host and process metrics including CPU, memory, disk, network, containers, and process-level telemetry.
+- **dt-obs-kubernetes**: Kubernetes clusters, pods, nodes, workloads, storage, networking, and resource relationships.
+- **dt-obs-aws**: AWS cloud resources: EC2, RDS, Lambda, ECS/EKS, VPC, load balancers, databases, serverless, messaging, and cost optimization.
+- **dt-obs-logs**: Log queries, filtering, pattern analysis, and log correlation.
+- **dt-obs-problems**: Problem entities, root cause analysis (RCA), impact assessment, and problem correlation.
+
+**Dynatrace Apps:**
+- **dt-app-dashboards**: Create, modify, query, and analyze Dynatrace dashboards: tiles, layouts, DQL queries, variables, and visualizations.
+- **dt-app-notebooks**: Create, modify, query, and analyze Dynatrace notebooks: sections, DQL queries, and analytics workflows.
+
+**Migration:**
+- **dt-migration**: Migrate classic entity-based DQL and topology navigation to Smartscape equivalents.
+
+### Quick Routing Map
+
+```
+"show me logs / log errors / log patterns"       → dt-obs-logs + dt-dql-essentials
+"service performance / error rate / latency"      → dt-obs-services + dt-dql-essentials
+"traces / spans / failed requests / dependencies" → dt-obs-tracing + dt-dql-essentials
+"host CPU / memory / disk / network"              → dt-obs-hosts + dt-dql-essentials
+"kubernetes / pods / nodes / OOMKill"             → dt-obs-kubernetes + dt-dql-essentials
+"AWS resources / EC2 / Lambda / RDS"              → dt-obs-aws + dt-dql-essentials
+"problems / incidents / root cause"               → dt-obs-problems + dt-dql-essentials
+"RUM / Web Vitals / user sessions / mobile"       → dt-obs-frontends + dt-dql-essentials
+"create/modify dashboard"                         → dt-app-dashboards + dt-dql-essentials
+"create/modify notebook"                          → dt-app-notebooks + dt-dql-essentials
+"migrate classic entities / Smartscape"            → dt-migration + dt-dql-essentials
+"write a DQL query" (any topic)                   → dt-dql-essentials (always first)
+```

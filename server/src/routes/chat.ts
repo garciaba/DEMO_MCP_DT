@@ -36,6 +36,7 @@ import {
   runDtctl,
   getDtctlContextInfo,
 } from '../services/dtctl.js';
+import { getSkillToolDefinition, getSkillReferenceToolDefinition, loadSkill, loadSkillReference, listSkillReferences } from '../services/skills.js';
 
 const COPILOT_API_HOST = 'api.githubcopilot.com';
 const COPILOT_API_PORT = 443;
@@ -149,6 +150,10 @@ export async function chatRoutes(app: FastifyInstance) {
       if (dtctlAvailable) {
         toolDefs.push(...getDtctlToolDefinitions());
       }
+
+      // Always register the Dynatrace domain skill loader tools
+      toolDefs.push(getSkillToolDefinition());
+      toolDefs.push(getSkillReferenceToolDefinition());
 
       // Build conversation messages
       const apiMessages: ApiMessage[] = augmentedMessages.map(m => ({
@@ -374,6 +379,75 @@ export async function chatRoutes(app: FastifyInstance) {
 
             // Opt-In: record tool call arguments
             toolSpan.setAttribute(ATTR_GEN_AI_TOOL_CALL_ARGUMENTS, JSON.stringify(args));
+
+            // ─── Dynatrace skill loading ───────────────────────
+            if (tc.name === 'load_dynatrace_skill') {
+              try {
+                const skillName = args.skill_name as string;
+                const content = loadSkill(skillName);
+                const resultText = content ?? `Skill '${skillName}' not found. Available skills: dt-dql-essentials, dt-obs-services, dt-obs-frontends, dt-obs-tracing, dt-obs-hosts, dt-obs-kubernetes, dt-obs-aws, dt-obs-logs, dt-obs-problems, dt-app-dashboards, dt-app-notebooks, dt-migration.`;
+
+                toolSpan.setAttribute(ATTR_GEN_AI_TOOL_CALL_RESULT, resultText.slice(0, 2000));
+                toolSpan.end();
+                sendEvent({ type: 'tool_call', toolName: tc.name, status: 'done' });
+                apiMessages.push({
+                  role: 'tool',
+                  tool_call_id: tc.id,
+                  content: resultText,
+                });
+              } catch (err) {
+                const errMsg = err instanceof Error ? err.message : 'Skill loading failed';
+                toolSpan.setAttribute(ATTR_ERROR_TYPE, errMsg);
+                toolSpan.setStatus({ code: SpanStatusCode.ERROR, message: errMsg });
+                toolSpan.end();
+                sendEvent({ type: 'tool_call', toolName: tc.name, status: 'error', error: errMsg });
+                apiMessages.push({
+                  role: 'tool',
+                  tool_call_id: tc.id,
+                  content: `Error: ${errMsg}`,
+                });
+              }
+              continue;
+            }
+
+            // ─── Dynatrace skill reference loading ─────────────
+            if (tc.name === 'load_dynatrace_skill_reference') {
+              try {
+                const skillName = args.skill_name as string;
+                const refName = args.reference_name as string;
+                const content = loadSkillReference(skillName, refName);
+                let resultText: string;
+                if (content) {
+                  resultText = content;
+                } else {
+                  const available = listSkillReferences(skillName);
+                  resultText = available
+                    ? `Reference '${refName}' not found for skill '${skillName}'. Available references: ${available.join(', ')}`
+                    : `Skill '${skillName}' has no reference files.`;
+                }
+
+                toolSpan.setAttribute(ATTR_GEN_AI_TOOL_CALL_RESULT, resultText.slice(0, 2000));
+                toolSpan.end();
+                sendEvent({ type: 'tool_call', toolName: tc.name, status: 'done' });
+                apiMessages.push({
+                  role: 'tool',
+                  tool_call_id: tc.id,
+                  content: resultText,
+                });
+              } catch (err) {
+                const errMsg = err instanceof Error ? err.message : 'Reference loading failed';
+                toolSpan.setAttribute(ATTR_ERROR_TYPE, errMsg);
+                toolSpan.setStatus({ code: SpanStatusCode.ERROR, message: errMsg });
+                toolSpan.end();
+                sendEvent({ type: 'tool_call', toolName: tc.name, status: 'error', error: errMsg });
+                apiMessages.push({
+                  role: 'tool',
+                  tool_call_id: tc.id,
+                  content: `Error: ${errMsg}`,
+                });
+              }
+              continue;
+            }
 
             // ─── dtctl tool handling ──────────────────────────
             if (tc.name === 'dtctl_run' || tc.name === 'dtctl_context_info') {
