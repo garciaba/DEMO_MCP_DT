@@ -1,4 +1,4 @@
-﻿# Sampling and Extrapolation
+# Sampling and Extrapolation
 
 One span can represent multiple real operations due to aggregation or sampling. Extrapolation is needed to accurately count operations.
 

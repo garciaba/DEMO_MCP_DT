@@ -1,4 +1,4 @@
-﻿# Relationship Mappings
+# Relationship Mappings
 
 Use this reference to verify which Smartscape edges are valid when rewriting classic relationships to `traverse`, `smartscapeEdges`, or `references`.
 

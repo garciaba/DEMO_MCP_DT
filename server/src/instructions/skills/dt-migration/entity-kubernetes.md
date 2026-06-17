@@ -1,4 +1,4 @@
-﻿# Kubernetes Migration Guide
+# Kubernetes Migration Guide
 
 Use this guide when the migration centers on Kubernetes cluster, node, namespace, service, pod, or workload entities.
 

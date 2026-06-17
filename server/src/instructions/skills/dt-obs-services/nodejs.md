@@ -1,4 +1,4 @@
-﻿# Node.js Performance Metrics
+# Node.js Performance Metrics
 
 Technology-specific metrics for Node.js runtime monitoring, including event loop performance, V8 heap memory, garbage collection, and process memory.
 

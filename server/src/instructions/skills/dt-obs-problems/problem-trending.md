@@ -1,4 +1,4 @@
-﻿# Problem Trending and Timeseries Analysis
+# Problem Trending and Timeseries Analysis
 
 Analyze problem patterns over time to identify trends, detect recurring issues, and understand frequency changes.
 
@@ -55,7 +55,7 @@ Monitor problem frequency for a service:
 ```dql
 fetch dt.davis.problems, from:now() - 24h
 | filter not(dt.davis.is_duplicate)
-| filter in(dt.entity.service, "SERVICE-00E66996F1555897") or in(dt.smartscape.service, toSmartscapeId("SERVICE-00E66996F1555897"))
+| filter in(dt.smartscape.service, toSmartscapeId("SERVICE-00E66996F1555897"))
 | summarize by:{start_day = bin(event.start, 24h)}, {
     total_problems = count(),
     active = countIf(event.status == "ACTIVE"),

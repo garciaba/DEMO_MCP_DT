@@ -1,4 +1,4 @@
-﻿# Smartscape Topology Navigation
+# Smartscape Topology Navigation
 
 Navigate entity relationships using `traverse`, `smartscapeNodes` and `smartscapeEdges`.
 

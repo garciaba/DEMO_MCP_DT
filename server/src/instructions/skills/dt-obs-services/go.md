@@ -1,4 +1,4 @@
-﻿# Go Runtime Performance Metrics
+# Go Runtime Performance Metrics
 
 Technology-specific metrics for Go runtime monitoring, including goroutines, garbage collection, memory management, and scheduler performance.
 

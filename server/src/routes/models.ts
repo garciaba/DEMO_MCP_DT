@@ -9,11 +9,38 @@ export async function modelsRoutes(app: FastifyInstance) {
     }
 
     const token = sessionStore.getToken(sessionId);
-    if (!token) {
+    const provider = sessionStore.getProvider(sessionId);
+    if (!token || !provider) {
       return reply.status(401).send({ error: 'Session expired' });
     }
 
     try {
+      if (provider === 'anthropic') {
+        // ── Anthropic Models API ────────────────────────────
+        const res = await fetch('https://api.anthropic.com/v1/models', {
+          headers: {
+            'x-api-key': token,
+            'anthropic-version': '2023-06-01',
+          },
+        });
+
+        if (!res.ok) {
+          const text = await res.text();
+          return reply.status(res.status).send({ error: `Anthropic API error: ${res.status}`, detail: text });
+        }
+
+        const data = await res.json() as { data?: Array<{ id: string; display_name?: string; type?: string }> };
+        const models = (data.data ?? []).map(m => ({
+          id: m.id,
+          name: m.display_name ?? m.id,
+          version: undefined,
+          capabilities: undefined,
+        }));
+
+        return reply.send({ models });
+      }
+
+      // ── GitHub Copilot Models API ─────────────────────────
       const res = await fetch('https://api.githubcopilot.com/models', {
         headers: {
           Authorization: `Bearer ${token}`,

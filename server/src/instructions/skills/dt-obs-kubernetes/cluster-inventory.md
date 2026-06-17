@@ -1,4 +1,4 @@
-﻿# Kubernetes Cluster and Namespace Inventory - Reference
+# Kubernetes Cluster and Namespace Inventory - Reference
 
 Deep dive into cluster and namespace inventory queries for understanding
 Kubernetes topology, resource distribution, and organizational hierarchy.

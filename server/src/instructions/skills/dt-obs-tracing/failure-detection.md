@@ -1,4 +1,4 @@
-﻿# Failure Detection Analysis
+# Failure Detection Analysis
 
 Dynatrace applies failure detection rules to identify failed requests. Use these queries to analyze failure patterns and investigate root causes.
 

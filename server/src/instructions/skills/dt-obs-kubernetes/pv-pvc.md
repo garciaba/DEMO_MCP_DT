@@ -1,4 +1,4 @@
-﻿# Persistent Volumes and Claims
+# Persistent Volumes and Claims
 
 ## Contents
 

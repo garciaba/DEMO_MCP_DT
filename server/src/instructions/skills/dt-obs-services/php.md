@@ -1,4 +1,4 @@
-﻿# PHP Runtime Performance Metrics
+# PHP Runtime Performance Metrics
 
 Technology-specific metrics for PHP runtime monitoring, including OPcache performance, JIT compilation, garbage collection, and interned strings management.
 

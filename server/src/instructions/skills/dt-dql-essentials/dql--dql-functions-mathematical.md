@@ -1,4 +1,4 @@
-﻿# DQL Functions — Mathematical
+# DQL Functions — Mathematical
 
 Param notation: `name` = required positional · `name:` = required named · suffix `*` = variadic · suffix `?` = optional · types listed as `|`-separated names or `any` (all scalar+collection types)
 

@@ -1,4 +1,4 @@
-﻿# DQL Parameter Value Types
+# DQL Parameter Value Types
 
 | key | name | description |
 |-----|------|-------------|

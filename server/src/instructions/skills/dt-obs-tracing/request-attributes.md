@@ -1,4 +1,4 @@
-﻿# Request Attributes and Request-Level Analysis
+# Request Attributes and Request-Level Analysis
 
 Query request attributes, captured attributes, and aggregate spans by request.
 

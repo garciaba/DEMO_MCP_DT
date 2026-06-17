@@ -1,4 +1,4 @@
-﻿# DQL Functions — Time series aggregation for metrics
+# DQL Functions — Time series aggregation for metrics
 
 Param notation: `name` = required positional · `name:` = required named · suffix `*` = variadic · suffix `?` = optional · types listed as `|`-separated names or `any` (all scalar+collection types)
 

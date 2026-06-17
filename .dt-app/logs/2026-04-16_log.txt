@@ -1,0 +1,6 @@
+2026-04-16T10:36:27.640Z DEBUG [APP_CONFIG_SCHEMA] Failed to copy app config schema to ./dt-app directory: Error: Cannot find module 'dt-app'
+Require stack:
+- C:\Users\Miguel.Balsa\AppData\Local\npm-cache\_npx\66b4c6222553ac72\node_modules\dt-app\lib\src\bin.js
+2026-04-16T10:49:48.951Z DEBUG [APP_CONFIG_SCHEMA] Failed to copy app config schema to ./dt-app directory: Error: Cannot find module 'dt-app'
+Require stack:
+- C:\Users\Miguel.Balsa\AppData\Local\npm-cache\_npx\66b4c6222553ac72\node_modules\dt-app\lib\src\bin.js

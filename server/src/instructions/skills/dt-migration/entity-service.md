@@ -1,4 +1,4 @@
-﻿# Service Migration Guide
+# Service Migration Guide
 
 Use this guide when the migration centers on `dt.entity.service` or service-related signal dimensions.
 

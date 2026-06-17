@@ -1,4 +1,4 @@
-﻿# Cloud Application Migration Guide
+# Cloud Application Migration Guide
 
 Use this guide when the classic query uses:
 

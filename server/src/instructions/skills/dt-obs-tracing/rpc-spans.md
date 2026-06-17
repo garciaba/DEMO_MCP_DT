@@ -1,4 +1,4 @@
-﻿# RPC Span Analysis
+# RPC Span Analysis
 
 Remote Procedure Call (RPC) spans cover gRPC, SOAP, Java RMI, and other RPC frameworks. These queries help monitor inter-service communication.
 

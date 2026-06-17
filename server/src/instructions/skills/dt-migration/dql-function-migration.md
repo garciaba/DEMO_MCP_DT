@@ -1,4 +1,4 @@
-﻿# DQL Function and Pattern Migration
+# DQL Function and Pattern Migration
 
 Use this reference when the migration is driven by a classic DQL construct rather than by a single entity type.
 

@@ -1,4 +1,4 @@
-﻿# Workload Health and Rollout Debugging
+# Workload Health and Rollout Debugging
 
 Detection patterns for degraded deployments, stuck rollouts, node pressure,
 CPU throttling, HPA scaling, and StatefulSet ordering.

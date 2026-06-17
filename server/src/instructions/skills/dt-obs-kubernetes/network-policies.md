@@ -1,4 +1,4 @@
-﻿# Network Policies
+# Network Policies
 
 Audit `K8S_NETWORKPOLICY` entities for namespace isolation coverage and
 inspect policy rules.

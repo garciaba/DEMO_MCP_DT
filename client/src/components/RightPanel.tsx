@@ -62,7 +62,7 @@ function ModelSelector() {
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
-  // Fetch models from the GitHub Copilot API
+  // Fetch models from the API (works for both GitHub Copilot and Anthropic)
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -74,6 +74,11 @@ function ModelSelector() {
           if (!cancelled && Array.isArray(data.models) && data.models.length > 0) {
             setModels(data.models);
             setLoaded(true);
+            // Auto-select first model if current selection isn't in the list
+            const ids = data.models.map((m: RemoteModel) => m.id);
+            if (!ids.includes(selectedModel) && data.models.length > 0) {
+              setModel(data.models[0].id);
+            }
           }
         }
       } catch {
@@ -636,7 +641,7 @@ export function RightPanel() {
   const isAuthenticated = dtctlInfo?.installed && dtctlInfo?.authenticated;
 
   return (
-    <aside className="w-72 border-l border-surface-3 bg-white flex flex-col shrink-0 overflow-hidden">
+    <aside className="w-64 border-l border-surface-3 bg-white flex flex-col shrink-0 overflow-hidden">
       <div className="flex-1 overflow-y-auto p-4 space-y-1 min-w-0">
         <ModelSelector />
         <Section

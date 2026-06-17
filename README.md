@@ -1,6 +1,6 @@
 # Dynatrace Observability Assistant
 
-An AI-powered observability assistant that combines **GitHub Copilot LLMs**, **Dynatrace MCP** (Model Context Protocol), **dtctl CLI**, and **Dynatrace domain skills** into a single web application for intelligent, evidence-driven investigation and management of Dynatrace environments.
+An AI-powered observability assistant that combines **GitHub Copilot LLMs** (or **Anthropic models**), **Dynatrace MCP** (Model Context Protocol), **dtctl CLI**, and **Dynatrace domain skills** into a single web application for intelligent, evidence-driven investigation and management of Dynatrace environments.
 
 ## What It Does
 
@@ -11,7 +11,7 @@ The assistant acts as an **agentic AI copilot for Dynatrace**. It can:
 - **Manage Dynatrace configuration** — Create, modify, and inspect workflows, dashboards, notebooks, SLOs, and settings via dtctl.
 - **Analyze uploaded context** — Ingest configuration files, logs, or data exports and reason over them alongside live telemetry.
 - **Triage incidents** — Follow structured workflows (problem → impact → traces → root cause → remediation) with tool calls at each step.
-- **Provide domain expertise** — Load on-demand skill packs covering 13 Dynatrace domains (DQL, services, frontends, traces, hosts, Kubernetes, AWS, logs, problems, dashboards, notebooks, and entity migration), each with detailed reference files.
+- **Provide domain expertise** — Load on-demand skill packs covering 17 Dynatrace domains (DQL, services, frontends, traces, hosts, Kubernetes, AWS, Azure, GCP, logs, problems, predictive analytics, alerting, dashboards, notebooks, JS runtime, and entity migration), each with detailed reference files.
 
 The LLM operates in an **agentic tool-calling loop** (up to 10 rounds per message), autonomously deciding which tools to invoke — MCP for live data, dtctl for configuration, and skills for domain knowledge — then synthesizing the results into a coherent response streamed in real time.
 
@@ -55,6 +55,7 @@ The LLM operates in an **agentic tool-calling loop** (up to 10 rounds per messag
          │                          │                      │
          ▼                          ▼                      ▼
   GitHub Copilot API       Dynatrace MCP Server       dtctl binary
+  or Anthropic API
   (LLM inference)          (live observability)       (config mgmt)
 ```
 
@@ -72,8 +73,8 @@ The LLM's system instructions encode a **routing decision map** so it automatica
 ## Features
 
 ### Core Chat
-- **Streaming responses** — Real-time SSE from GitHub Copilot API with delta, tool-call, and MCP-traffic events
-- **Model selection** — GPT-4o, GPT-4o Mini, Claude Sonnet 4, o3-mini (dynamic list from Copilot API)
+- **Streaming responses** — Real-time SSE from GitHub Copilot API or Anthropic Messages API with delta, tool-call, and MCP-traffic events
+- **Model selection** — GPT-4o, GPT-4o Mini, Claude Sonnet 4, o3-mini (dynamic list from Copilot API), or Anthropic models (Claude Opus 4, Sonnet 4, Haiku, etc.)
 - **Agentic tool calling** — Multi-round loop (up to 10 iterations) where the LLM autonomously invokes tools and reasons over results
 - **Markdown rendering** — Full GFM support with syntax-highlighted code blocks
 
@@ -89,7 +90,7 @@ The LLM's system instructions encode a **routing decision map** so it automatica
 - **Context awareness** — Pre-flight checks (`dtctl_context_info`) before any state-changing command
 
 ### Dynatrace Domain Skills
-- **13 domain skills** loaded on-demand by the LLM via tool calls:
+- **17 domain skills** loaded on-demand by the LLM via tool calls:
 
   | Skill | Domain |
   |-------|--------|
@@ -100,13 +101,18 @@ The LLM's system instructions encode a **routing decision map** so it automatica
   | `dt-obs-hosts` | Host/process metrics — CPU, memory, disk, containers |
   | `dt-obs-kubernetes` | Clusters, pods, nodes, workloads, storage, networking |
   | `dt-obs-aws` | EC2, RDS, Lambda, ECS/EKS, VPC, cost optimization |
+  | `dt-obs-azure` | VMs, SQL Database, Storage, AKS, App Service, Functions, VNet |
+  | `dt-obs-gcp` | Compute Engine, GKE, Cloud Run, Pub/Sub, VPC, IAM |
   | `dt-obs-logs` | Log queries, filtering, pattern analysis, correlation |
   | `dt-obs-problems` | Problems, RCA, impact analysis, problem correlation |
-  | `dt-app-dashboards` | Dashboard creation, tiles, layouts, variables |
+  | `dt-obs-predictive-analytics` | Forecasting, capacity planning, anomaly/trend detection |
+  | `dt-alerting` | Anomaly detectors, Davis events, workflow notifications |
+  | `dt-app-dashboards` | Dashboard creation, tiles, variables, visualizations |
   | `dt-app-notebooks` | Notebook creation, sections, analytics workflows |
+  | `dt-js-runtime` | Dynatrace server-side JS runtime, @dynatrace-sdk/* catalog |
   | `dt-migration` | Classic entity → Smartscape migration patterns |
 
-- **110+ reference files** for deep-dive sub-topics (e.g., individual DQL function categories, runtime-specific metrics, entity migration patterns), loadable via `load_dynatrace_skill_reference`
+- **250+ reference files** for deep-dive sub-topics (e.g., individual DQL function categories, runtime-specific metrics, SDK API docs, entity migration patterns), loadable via `load_dynatrace_skill_reference`
 
 ### Context Management
 - **File uploads** — JSON, YAML, TXT, CSV, MD, LOG, XML, Python, JS/TS, Dockerfile, .env (up to 20 files, 12 MB total, 5 MB per file)
@@ -114,7 +120,7 @@ The LLM's system instructions encode a **routing decision map** so it automatica
 - **Custom system prompts** — Override or augment the default system instructions
 
 ### Authentication & Security
-- **GitHub OAuth Device Flow** — No redirect URIs needed; ideal for local development and demos
+- **Dual auth providers** — GitHub OAuth Device Flow or Anthropic API key login
 - **8-hour sessions** — In-memory session store with httpOnly signed cookies
 - **Backend proxy** — Dynatrace API tokens stay server-side (never exposed to the browser)
 - **Rate limiting** — 100 requests/minute per client
@@ -141,8 +147,9 @@ One-click prompts organized by category:
 ## Prerequisites
 
 - **Node.js 20+**
-- **A GitHub OAuth App** — [Create one here](https://github.com/settings/applications/new)
-- **A GitHub Copilot license** on the authenticating GitHub account
+- **A GitHub OAuth App** — [Create one here](https://github.com/settings/applications/new) *(for GitHub provider)*
+- **A GitHub Copilot license** on the authenticating GitHub account *(for GitHub provider)*
+- **An Anthropic API key** *(alternative — for Anthropic provider)*
 - **A Dynatrace environment** (optional) — For MCP and dtctl integration
 
 ---
@@ -188,10 +195,16 @@ npm run dev
 
 ### 4. Authenticate
 
+**Option A — GitHub (Copilot models):**
 1. Open the frontend in your browser.
 2. Click **Sign in with GitHub** — a device code is displayed.
 3. Open the GitHub verification URL, enter the code, and authorize.
 4. The app polls for the token and starts your session.
+
+**Option B — Anthropic (Claude models):**
+1. Switch to the **Anthropic** tab on the login screen.
+2. Enter your Anthropic API key.
+3. Click **Sign in with Anthropic** — the key is validated and your session starts.
 
 ### 5. Connect to Dynatrace (optional)
 
@@ -290,7 +303,7 @@ services:
 │       │   ├── ChatPanel.tsx        # Chat messages, SSE consumer, markdown
 │       │   ├── LeftPanel.tsx        # Prompts, file uploads, model selector
 │       │   ├── RightPanel.tsx       # dtctl, telemetry, MCP config
-│       │   └── LoginScreen.tsx      # GitHub device flow UI
+│       │   └── LoginScreen.tsx      # GitHub + Anthropic login UI
 │       ├── stores/
 │       │   ├── auth.ts             # Authentication state (Zustand)
 │       │   └── chat.ts            # Chat, context, MCP, dtctl state (Zustand)
@@ -301,16 +314,17 @@ services:
 │       │   └── env.ts              # Environment variable parsing
 │       ├── instructions/
 │       │   ├── system-instructions.md   # LLM system prompt (routing, safety, workflows)
-│       │   └── skills/             # 13 domain skills + 110 reference files
+│       │   └── skills/             # 17 domain skills + 250+ reference files
 │       │       ├── dt-dql-essentials.md
 │       │       ├── dt-dql-essentials/   # 31 DQL reference files
 │       │       ├── dt-obs-services.md
 │       │       ├── dt-obs-services/     # 7 runtime-specific refs
+│       │       ├── dt-js-runtime/       # 122 SDK reference files
 │       │       ├── ...                  # (one .md + directory per skill)
-│       │       └── dt-migration/        # 14 migration reference files
+│       │       └── dt-migration/        # 17 migration reference files
 │       ├── routes/
-│       │   ├── auth.ts             # GitHub OAuth device flow
-│       │   ├── chat.ts             # SSE streaming + agentic tool loop
+│       │   ├── auth.ts             # GitHub OAuth + Anthropic API key auth
+│       │   ├── chat.ts             # SSE streaming + agentic tool loop (GitHub & Anthropic)
 │       │   ├── context.ts          # File upload/download/budget
 │       │   ├── dtctl.ts            # dtctl install/login/exec
 │       │   ├── dynatrace.ts        # MCP server connect/tools
@@ -321,8 +335,8 @@ services:
 │       │   ├── dtctl-skill.ts      # System instructions loader
 │       │   ├── mcp-client.ts       # MCP JSON-RPC 2.0 client
 │       │   ├── mcp-context.ts      # Context aggregation + budget management
-│       │   ├── session.ts          # In-memory session store (8h TTL)
-│       │   └── skills.ts           # Skill catalog, loader, reference loader
+│       │   ├── session.ts          # In-memory session store (8h TTL, multi-provider)
+│       │   └── skills.ts           # Skill catalog (17 skills), loader, reference loader
 │       ├── telemetry.ts            # OpenTelemetry SDK setup + runtime reconfig
 │       ├── semconv.ts              # GenAI semantic convention constants
 │       └── index.ts                # Entry point
@@ -352,7 +366,7 @@ User sends message
        ▼
   ┌─── Tool loop (up to 10 rounds) ──────────────────┐
   │                                                    │
-  │  Send messages + tools → GitHub Copilot API        │
+  │  Send messages + tools → GitHub Copilot API / Anthropic API        │
   │       │                                            │
   │       ▼                                            │
   │  Stream response (SSE deltas to browser)           │
@@ -402,7 +416,8 @@ When the LLM emits tool calls, they are dispatched in this priority:
 |--------|----------|-------------|
 | POST | `/device-code` | Start GitHub device flow (returns `user_code` + `verification_uri`) |
 | POST | `/poll-token` | Poll for access token after user authorization |
-| GET | `/status` | Check current session and user info |
+| POST | `/anthropic-login` | Login with Anthropic API key (validates against Anthropic API) |
+| GET | `/status` | Check current session, user info, and provider |
 | POST | `/logout` | Destroy session |
 
 ### Chat (`/api/chat`)
@@ -468,7 +483,7 @@ When the LLM emits tool calls, they are dispatched in this priority:
 |----------|-----------|
 | **Fastify** over Express | 2–3x faster, built-in schema validation, TypeScript-first |
 | **SSE** over WebSocket | Simpler for unidirectional streaming, native browser support |
-| **Device Flow** auth | Works without redirect URIs — ideal for local dev and demos |
+| **Dual auth** (Device Flow + API key) | GitHub Device Flow for Copilot, Anthropic API key for Claude — no redirect URIs needed |
 | **Zustand** state | Minimal boilerplate, no context providers, tiny bundle |
 | **Backend proxy** for DT | API tokens stay server-side, prevents browser exposure |
 | **In-memory sessions** | Sufficient for single-instance demo; swap to Redis for production |
@@ -480,7 +495,7 @@ When the LLM emits tool calls, they are dispatched in this priority:
 
 ## Security
 
-- **GitHub tokens** stored in httpOnly signed cookies (never in localStorage)
+- **GitHub tokens** and **Anthropic API keys** stored in httpOnly signed cookies (never in localStorage)
 - **Dynatrace API tokens** proxied server-side (never sent to the browser)
 - **SSRF protection** on the Dynatrace proxy (relative paths only)
 - **Command injection prevention** — dtctl commands are parsed and validated against an allowed-verb whitelist; semicolons, pipes, and backticks are blocked

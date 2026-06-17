@@ -1,4 +1,4 @@
-﻿# Python Runtime Performance Metrics
+# Python Runtime Performance Metrics
 
 Technology-specific metrics for Python runtime monitoring, including garbage collection by generation, thread count, and memory block allocation.
 

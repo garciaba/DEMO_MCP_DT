@@ -1,4 +1,4 @@
-﻿# DQL Query Optimization Guide
+# DQL Query Optimization Guide
 
 Comprehensive guide to writing efficient DQL queries with best practices, patterns, and performance tips.
 

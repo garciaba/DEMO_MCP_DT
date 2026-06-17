@@ -1,4 +1,4 @@
-﻿# Performance Analysis
+# Performance Analysis
 
 Analyze response times, percentiles, and create timeseries from span data using DQL aggregation functions.
 

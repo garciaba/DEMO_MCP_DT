@@ -1,4 +1,4 @@
-﻿# Logs and Traces Correlation
+# Logs and Traces Correlation
 
 Logs can be enriched with `trace_id` and `span_id` to enable correlation with distributed traces. OneAgent can automatically enrich logs with trace context.
 

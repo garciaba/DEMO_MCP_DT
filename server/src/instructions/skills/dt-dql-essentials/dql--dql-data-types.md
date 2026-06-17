@@ -1,4 +1,4 @@
-﻿# DQL Data Types
+# DQL Data Types
 
 | key | name | description |
 |-----|------|-------------|

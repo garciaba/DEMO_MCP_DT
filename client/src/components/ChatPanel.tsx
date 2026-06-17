@@ -1,15 +1,64 @@
-import { useRef, useEffect, useState, useCallback, memo } from 'react';
+import { useRef, useEffect, useState, useCallback, useMemo, memo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useChatStore } from '../stores/chat';
 import type { ChatMessage, MCPActivityItem } from '../../../shared/src/index';
 
+// ─── Helpers ──────────────────────────────────────────────────
+
+function isSkillActivity(a: MCPActivityItem) {
+  return a.summary === 'Loaded' && (a.toolName.startsWith('dt-') || a.toolName.includes(' / '));
+}
+
+// ─── Skills Background Bar ───────────────────────────────────
+
+const SkillsBar = memo(function SkillsBar({ allActivities }: { allActivities: Record<string, MCPActivityItem[]> }) {
+  const skills = useMemo(() => {
+    const seen = new Set<string>();
+    const items: { name: string; isRef: boolean; ts: number }[] = [];
+    for (const acts of Object.values(allActivities)) {
+      for (const a of acts) {
+        if (isSkillActivity(a) && !seen.has(a.toolName)) {
+          seen.add(a.toolName);
+          items.push({ name: a.toolName, isRef: a.toolName.includes(' / '), ts: a.timestamp });
+        }
+      }
+    }
+    return items;
+  }, [allActivities]);
+
+  if (skills.length === 0) return null;
+
+  return (
+    <div className="sticky top-0 z-10 -mx-6 px-6 py-2 bg-surface-1/80 backdrop-blur-sm border-b border-surface-3/50">
+      <div className="max-w-4xl mx-auto flex items-center gap-2 flex-wrap">
+        <span className="text-[10px] uppercase tracking-wider font-semibold text-gray-400 mr-1">Skills</span>
+        {skills.map(s => (
+          <span
+            key={s.name}
+            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium transition-all animate-slide-up ${
+              s.isRef
+                ? 'bg-amber-50 text-amber-600 ring-1 ring-amber-200/60'
+                : 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200/60'
+            }`}
+          >
+            <span className="text-[10px]">{s.isRef ? '📄' : '📚'}</span>
+            {s.name}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+});
+
 // ─── MCP Activity Log ─────────────────────────────────────────
 
 const MCPActivityLog = memo(function MCPActivityLog({ activities }: { activities: MCPActivityItem[] }) {
+  // Filter out skill/reference items — they appear in the SkillsBar instead
+  const toolActivities = useMemo(() => activities.filter(a => !isSkillActivity(a)), [activities]);
   const [expanded, setExpanded] = useState(false);
 
-  if (activities.length === 0) return null;
+  if (toolActivities.length === 0) return null;
 
   return (
     <div className="mcp-activity-log my-2 max-w-[75%] ml-11">
@@ -23,8 +72,8 @@ const MCPActivityLog = memo(function MCPActivityLog({ activities }: { activities
              className="text-indigo-400 group-hover:text-indigo-500">
           <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
         </svg>
-        <span className="font-medium">MCP Activity</span>
-        <span className="text-gray-400">({activities.length})</span>
+        <span className="font-medium">Activity</span>
+        <span className="text-gray-400">({toolActivities.length})</span>
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
              strokeWidth="2" className={`transition-transform ${expanded ? 'rotate-180' : ''}`}>
           <path d="M6 9l6 6 6-6" />
@@ -34,7 +83,7 @@ const MCPActivityLog = memo(function MCPActivityLog({ activities }: { activities
       {expanded && (
         <div className="mt-1 border border-surface-3 rounded-lg bg-white/60 backdrop-blur-sm
                         overflow-hidden divide-y divide-surface-3 animate-slide-up">
-          {activities.map(a => (
+          {toolActivities.map(a => (
             <div key={a.id} className="px-3 py-2 flex items-start gap-2 text-xs">
               {a.direction === 'sent' ? (
                 <span className="mcp-badge mcp-badge-sent shrink-0 mt-0.5">SENT</span>
@@ -42,7 +91,7 @@ const MCPActivityLog = memo(function MCPActivityLog({ activities }: { activities
                 <span className="mcp-badge mcp-badge-received shrink-0 mt-0.5">RECV</span>
               )}
               <div className="min-w-0">
-                <span className="font-mono text-indigo-600 font-medium">{a.toolName}</span>
+                <span className="font-mono font-medium text-indigo-600">{a.toolName}</span>
                 <p className="text-gray-500 mt-0.5 break-words leading-relaxed">{a.summary}</p>
               </div>
             </div>
@@ -164,18 +213,21 @@ export function ChatPanel() {
             </p>
           </div>
         ) : (
-          <div className="max-w-3xl mx-auto space-y-4">
-            {messages.map(msg => (
-              <MessageBubble key={msg.id} message={msg} activities={mcpActivities[msg.id]} />
-            ))}
-            <div ref={messagesEndRef} />
-          </div>
+          <>
+            <SkillsBar allActivities={mcpActivities} />
+            <div className="max-w-4xl mx-auto space-y-4 pt-2">
+              {messages.map(msg => (
+                <MessageBubble key={msg.id} message={msg} activities={mcpActivities[msg.id]} />
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
+          </>
         )}
       </div>
 
       {/* ─── Input Area ────────────────────────────────────── */}
       <div className="shrink-0 border-t border-surface-3 bg-white px-6 py-4">
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           <div className="flex items-end gap-3">
             {messages.length > 0 && (
               <button

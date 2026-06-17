@@ -5,6 +5,8 @@ import { RightPanel } from './RightPanel';
 
 export function ChatLayout() {
   const user = useAuthStore(s => s.status.user);
+  const anthropicUser = useAuthStore(s => s.status.anthropicUser);
+  const provider = useAuthStore(s => s.status.provider);
   const logout = useAuthStore(s => s.logout);
 
   return (
@@ -22,7 +24,16 @@ export function ChatLayout() {
         </div>
 
         <div className="flex items-center gap-3">
-          {user && (
+          {provider === 'anthropic' && anthropicUser ? (
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-full ring-2 ring-surface-3 bg-[#D4A27F] flex items-center justify-center">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="white">
+                  <path d="M13.827 3.52h3.603L24 20.48h-3.603l-6.57-16.96zm-7.258 0h3.767L16.906 20.48h-3.674l-1.503-4.076H5.248l-1.5 4.076H0L6.569 3.52zm1.04 4.777L5.247 14.14h4.755L7.609 8.297z"/>
+                </svg>
+              </div>
+              <span className="text-sm text-gray-600 font-medium">{anthropicUser.name}</span>
+            </div>
+          ) : user ? (
             <div className="flex items-center gap-2">
               <img
                 src={user.avatar_url}
@@ -31,7 +42,7 @@ export function ChatLayout() {
               />
               <span className="text-sm text-gray-600 font-medium">{user.login}</span>
             </div>
-          )}
+          ) : null}
           <button
             onClick={logout}
             className="text-xs text-gray-400 hover:text-gray-600 transition-colors px-2 py-1 rounded hover:bg-surface-2"

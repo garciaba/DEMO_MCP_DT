@@ -2,10 +2,13 @@ import type { ChatMessage, ContextPayload } from '../../../shared/src/index.js';
 import { getSystemInstructions } from './dtctl-skill.js';
 
 // ─── Context size limits for LLM ──────────────────────────────
-// Most models support ~128k tokens. 1 token ≈ 4 chars.
-// Reserve ~32k tokens for conversation + response, leaving ~96k for context.
-const MAX_CONTEXT_CHARS = 96_000 * 4; // ~96k tokens
-const MAX_FILE_CHARS = 60_000 * 4;    // Max chars per single file in context
+// Copilot API enforces a ~64k prompt token limit.
+// 1 token ≈ 4 chars.
+// Budget: 28k tokens for system context (instructions + files),
+// leaving ~32k for conversation + tool results + response headroom.
+export const MAX_PROMPT_TOKENS = 56_000;       // hard ceiling before trimming kicks in
+const MAX_CONTEXT_CHARS = 28_000 * 4;          // ~28k tokens for system context
+const MAX_FILE_CHARS = 12_000 * 4;             // Max chars per single file in context
 
 /**
  * Truncate text to fit within a character budget, adding a notice if truncated.

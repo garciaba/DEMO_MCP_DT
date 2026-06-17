@@ -1,4 +1,4 @@
-﻿# Messaging Span Analysis
+# Messaging Span Analysis
 
 Messaging spans capture async communication via Kafka, RabbitMQ, SQS, and other message brokers. Use these queries to monitor message processing health.
 

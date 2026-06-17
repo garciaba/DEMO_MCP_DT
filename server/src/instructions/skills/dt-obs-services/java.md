@@ -1,4 +1,4 @@
-﻿# Java JVM Performance Metrics
+# Java JVM Performance Metrics
 
 Technology-specific metrics for Java Virtual Machine monitoring, including heap memory, garbage collection, threads, and JVM health analysis.
 

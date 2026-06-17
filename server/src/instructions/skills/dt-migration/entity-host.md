@@ -1,4 +1,4 @@
-﻿# Host Migration Guide
+# Host Migration Guide
 
 Use this guide when the migration centers on `dt.entity.host` or host-related signal dimensions.
 

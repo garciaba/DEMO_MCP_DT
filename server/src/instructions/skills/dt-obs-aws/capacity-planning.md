@@ -1,4 +1,4 @@
-﻿# AWS Capacity Planning
+# AWS Capacity Planning
 
 Analyze resource capacity and plan for growth.
 

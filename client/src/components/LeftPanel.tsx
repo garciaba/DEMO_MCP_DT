@@ -1,37 +1,87 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useMemo } from 'react';
 import { useChatStore } from '../stores/chat';
 import { PREDEFINED_PROMPTS } from '../../../shared/src/index';
 import type { ContextFile, ContextBudget } from '../../../shared/src/index';
 
-// ─── Prompts Section ──────────────────────────────────────────
+// Category icons for the accordion headers
+const CATEGORY_ICONS: Record<string, string> = {
+  'Incident & War Room': '🚨',
+  'Service Performance': '⚡',
+  'Infrastructure': '🖥️',
+  'Frontend & RUM': '🌐',
+  'Logs & Traces': '📋',
+  'Cloud & AWS': '☁️',
+  'Management (dtctl)': '🔧',
+  'Context Analysis': '🔍',
+};
+
+// ─── Prompts Section (Accordion) ──────────────────────────────
 
 function PromptsSection({ onSelect }: { onSelect: (text: string) => void }) {
-  const categories = [...new Set(PREDEFINED_PROMPTS.map(p => p.category))];
+  const [openCategory, setOpenCategory] = useState<string | null>('Incident & War Room');
+
+  const categories = useMemo(
+    () => [...new Set(PREDEFINED_PROMPTS.map(p => p.category))],
+    [],
+  );
+
+  const promptsByCategory = useMemo(
+    () => Object.fromEntries(categories.map(cat => [cat, PREDEFINED_PROMPTS.filter(p => p.category === cat)])),
+    [categories],
+  );
+
+  const toggleCategory = useCallback((cat: string) => {
+    setOpenCategory(prev => (prev === cat ? null : cat));
+  }, []);
 
   return (
     <div>
-      <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+      <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
         Quick Prompts
       </h3>
-      {categories.map(cat => (
-        <div key={cat} className="mb-4">
-          <p className="text-xs font-medium text-gray-500 mb-2">{cat}</p>
-          <div className="space-y-1.5">
-            {PREDEFINED_PROMPTS.filter(p => p.category === cat).map(prompt => (
+      <div className="space-y-0.5">
+        {categories.map(cat => {
+          const isOpen = openCategory === cat;
+          const prompts = promptsByCategory[cat];
+          return (
+            <div key={cat}>
               <button
-                key={prompt.id}
-                onClick={() => onSelect(prompt.text)}
-                className="w-full text-left px-3 py-2 rounded-lg text-sm text-gray-700
-                           hover:bg-brand-50 hover:text-brand-700 transition-colors
-                           flex items-center gap-2 group"
+                onClick={() => toggleCategory(cat)}
+                className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium
+                           text-gray-600 hover:bg-surface-2 hover:text-gray-800 transition-colors"
               >
-                <span className="text-base">{prompt.icon}</span>
-                <span className="truncate group-hover:text-brand-700">{prompt.label}</span>
+                <span className="text-sm leading-none">{CATEGORY_ICONS[cat] ?? '📁'}</span>
+                <span className="flex-1 text-left truncate">{cat}</span>
+                <span className="text-[10px] text-gray-400 tabular-nums">{prompts.length}</span>
+                <svg
+                  width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  strokeWidth="2" className={`shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                >
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
               </button>
-            ))}
-          </div>
-        </div>
-      ))}
+
+              {isOpen && (
+                <div className="ml-1 mt-0.5 mb-1 space-y-0.5 animate-slide-up">
+                  {prompts.map(prompt => (
+                    <button
+                      key={prompt.id}
+                      onClick={() => onSelect(prompt.text)}
+                      title={prompt.text}
+                      className="w-full text-left px-2.5 py-1.5 rounded-md text-xs text-gray-600
+                                 hover:bg-brand-50 hover:text-brand-700 transition-colors
+                                 flex items-center gap-1.5 group"
+                    >
+                      <span className="text-sm leading-none shrink-0">{prompt.icon}</span>
+                      <span className="truncate group-hover:text-brand-700">{prompt.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -281,7 +331,7 @@ export function LeftPanel() {
   }, [isStreaming, sendMessage]);
 
   return (
-    <aside className="w-72 border-r border-surface-3 bg-white flex flex-col shrink-0 overflow-hidden">
+    <aside className="w-64 border-r border-surface-3 bg-white flex flex-col shrink-0 overflow-hidden">
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
         <PromptsSection onSelect={handlePromptSelect} />
         <div className="border-t border-surface-3 pt-4">

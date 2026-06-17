@@ -1,4 +1,4 @@
-﻿# Ingress
+# Ingress
 
 Query `K8S_INGRESS` entities, parse routing rules, and audit TLS
 configuration.

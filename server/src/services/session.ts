@@ -1,8 +1,11 @@
-import type { GitHubUser } from '../../../shared/src/index.js';
+import type { GitHubUser, AnthropicUser, AuthProvider } from '../../../shared/src/index.js';
 
 interface Session {
-  githubToken: string;
-  user: GitHubUser;
+  provider: AuthProvider;
+  githubToken?: string;
+  anthropicApiKey?: string;
+  user?: GitHubUser;
+  anthropicUser?: AnthropicUser;
   createdAt: number;
 }
 
@@ -33,7 +36,13 @@ class SessionStore {
   }
 
   getToken(sessionId: string): string | undefined {
-    return this.get(sessionId)?.githubToken;
+    const session = this.get(sessionId);
+    if (!session) return undefined;
+    return session.githubToken ?? session.anthropicApiKey;
+  }
+
+  getProvider(sessionId: string): AuthProvider | undefined {
+    return this.get(sessionId)?.provider;
   }
 }
 

@@ -1,4 +1,4 @@
-﻿# Networking and IP Analysis
+# Networking and IP Analysis
 
 Trace data contains networking information including IP addresses, server addresses, and DNS resolution results.
 

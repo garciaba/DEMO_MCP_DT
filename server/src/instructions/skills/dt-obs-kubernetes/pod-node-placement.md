@@ -1,4 +1,4 @@
-﻿# Node and Pod Placement - Reference
+# Node and Pod Placement - Reference
 
 Deep dive into pod distribution, node characteristics, scheduling constraints,
 and high availability patterns in Kubernetes.

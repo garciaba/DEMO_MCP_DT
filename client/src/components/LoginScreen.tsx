@@ -2,7 +2,11 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuthStore } from '../stores/auth';
 
 export function LoginScreen() {
-  const { deviceCode, loading, error, clientId, setClientId, startDeviceFlow, pollForToken, clearError } = useAuthStore();
+  const {
+    deviceCode, loading, error, clientId, anthropicApiKey, loginMode,
+    setLoginMode, setClientId, setAnthropicApiKey,
+    startDeviceFlow, pollForToken, loginWithAnthropic, clearError,
+  } = useAuthStore();
   const [copied, setCopied] = useState(false);
   const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -16,8 +20,8 @@ export function LoginScreen() {
       if (cancelled) return;
       const result = await pollForToken(deviceCode.device_code);
       if (cancelled) return;
-      if (result === true) return; // done or error — stop
-      if (result === 'slow_down') delay += 5000; // back off
+      if (result === true) return;
+      if (result === 'slow_down') delay += 5000;
       pollRef.current = setTimeout(poll, delay);
     };
 
@@ -55,6 +59,36 @@ export function LoginScreen() {
             <p className="text-sm text-gray-500 mt-1">Copilot + Dynatrace Integration Demo</p>
           </div>
 
+          {/* Provider Tabs */}
+          <div className="flex rounded-lg bg-surface-2 p-1 mb-6">
+            <button
+              onClick={() => setLoginMode('github')}
+              className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all ${
+                loginMode === 'github'
+                  ? 'bg-white text-gray-900 shadow-soft'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+              </svg>
+              GitHub
+            </button>
+            <button
+              onClick={() => setLoginMode('anthropic')}
+              className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all ${
+                loginMode === 'anthropic'
+                  ? 'bg-white text-gray-900 shadow-soft'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M13.827 3.52h3.603L24 20.48h-3.603l-6.57-16.96zm-7.258 0h3.767L16.906 20.48h-3.674l-1.503-4.076H5.248l-1.5 4.076H0L6.569 3.52zm1.04 4.777L5.247 14.14h4.755L7.609 8.297z"/>
+              </svg>
+              Anthropic
+            </button>
+          </div>
+
           {error && (
             <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100 flex items-center justify-between">
               <span>{error}</span>
@@ -62,7 +96,52 @@ export function LoginScreen() {
             </div>
           )}
 
-          {!deviceCode ? (
+          {loginMode === 'anthropic' ? (
+            /* ── Anthropic API Key Login ─────────────────────── */
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1.5">Anthropic API Key</label>
+                <input
+                  type="password"
+                  value={anthropicApiKey}
+                  onChange={e => setAnthropicApiKey(e.target.value)}
+                  placeholder="sk-ant-api03-..."
+                  className="w-full px-3 py-2.5 text-sm border border-surface-3 rounded-lg
+                             focus:outline-none focus:ring-2 focus:ring-brand-200 focus:border-brand-400
+                             bg-surface-1 transition-all font-mono"
+                />
+                <p className="text-xs text-gray-400 mt-1">
+                  From your <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener noreferrer" className="text-brand-500 hover:underline">Anthropic Console</a>
+                </p>
+              </div>
+
+              <button
+                onClick={loginWithAnthropic}
+                disabled={loading || !anthropicApiKey.trim()}
+                className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-[#D4A27F] text-white rounded-xl
+                           hover:bg-[#c4926f] transition-all duration-200 font-medium text-sm
+                           disabled:opacity-50 disabled:cursor-not-allowed shadow-soft"
+              >
+                {loading ? (
+                  <div className="typing-dots">
+                    <span></span><span></span><span></span>
+                  </div>
+                ) : (
+                  <>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M13.827 3.52h3.603L24 20.48h-3.603l-6.57-16.96zm-7.258 0h3.767L16.906 20.48h-3.674l-1.503-4.076H5.248l-1.5 4.076H0L6.569 3.52zm1.04 4.777L5.247 14.14h4.755L7.609 8.297z"/>
+                    </svg>
+                    Sign in with Anthropic
+                  </>
+                )}
+              </button>
+
+              <p className="text-xs text-gray-400 text-center mt-4">
+                Your API key is sent to the server and stored in-memory for the session only.
+              </p>
+            </div>
+          ) : !deviceCode ? (
+            /* ── GitHub Device Flow ──────────────────────────── */
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1.5">GitHub Client ID</label>
@@ -100,8 +179,13 @@ export function LoginScreen() {
                 </>
               )}
               </button>
+
+              <p className="text-xs text-gray-400 text-center mt-4">
+                Requires a GitHub Copilot license
+              </p>
             </div>
           ) : (
+            /* ── GitHub Device Code Verification ─────────────── */
             <div className="text-center animate-slide-up">
               <p className="text-sm text-gray-500 mb-3">Enter this code at GitHub:</p>
 
@@ -139,10 +223,6 @@ export function LoginScreen() {
               </div>
             </div>
           )}
-
-          <p className="text-xs text-gray-400 text-center mt-6">
-            Requires a GitHub Copilot license
-          </p>
         </div>
       </div>
     </div>

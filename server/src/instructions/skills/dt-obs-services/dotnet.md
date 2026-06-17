@@ -1,4 +1,4 @@
-﻿# .NET CLR Performance Metrics
+# .NET CLR Performance Metrics
 
 Technology-specific metrics for .NET Common Language Runtime monitoring, including garbage collection, memory consumption, JIT compilation, and thread pool management.
 

@@ -1,4 +1,4 @@
-﻿# Type and Field Mappings
+# Type and Field Mappings
 
 Use this reference when you need the full classic-to-Smartscape mapping set.
 

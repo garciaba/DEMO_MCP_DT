@@ -1,4 +1,4 @@
-﻿# HTTP Span Analysis
+# HTTP Span Analysis
 
 HTTP spans capture web requests and API calls. Server spans represent incoming requests; client spans represent outgoing calls to external services.
 

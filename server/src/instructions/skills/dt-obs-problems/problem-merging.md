@@ -1,4 +1,4 @@
-﻿# Problem Merging Guidance
+# Problem Merging Guidance
 
 Understand when individual alarm events (dt.davis.event) are merged into one problem and why they may stay separate.
 

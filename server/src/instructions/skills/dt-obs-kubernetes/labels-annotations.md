@@ -1,4 +1,4 @@
-﻿# Kubernetes Labels and Annotations - Reference
+# Kubernetes Labels and Annotations - Reference
 
 Deep dive into using Kubernetes labels and annotations for filtering,
 organizing, and managing K8s resources in Dynatrace DQL.

@@ -1,4 +1,4 @@
-﻿# Special Cases
+# Special Cases
 
 Use this reference before translating classic entity patterns literally. Several classic entity concepts are not modeled as standalone Smartscape node types.
 

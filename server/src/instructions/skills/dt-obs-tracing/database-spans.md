@@ -1,4 +1,4 @@
-﻿# Database Span Analysis
+# Database Span Analysis
 
 Database operations in traces appear as client spans with database-specific attributes. Database spans can be aggregated (one span representing multiple calls).
 

@@ -1,4 +1,4 @@
-﻿# Serverless (FaaS) Span Analysis
+# Serverless (FaaS) Span Analysis
 
 Function-as-a-Service spans capture AWS Lambda, Azure Functions, and GCP Cloud Functions execution. Monitor cold starts, invocations, and performance.
 

@@ -5,6 +5,56 @@ import { sessionStore } from '../services/session.js';
 import type { GitHubUser } from '../../../shared/src/index.js';
 
 export async function authRoutes(app: FastifyInstance) {
+  // ─── Anthropic API Key Login ──────────────────────────────
+  app.post<{ Body: { apiKey: string } }>('/anthropic-login', async (req, reply) => {
+    const { apiKey } = req.body ?? {};
+    if (!apiKey || typeof apiKey !== 'string' || !apiKey.startsWith('sk-ant-')) {
+      return reply.status(400).send({ error: 'A valid Anthropic API key is required (starts with sk-ant-).' });
+    }
+
+    // Validate the API key by calling the Anthropic models endpoint
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/models', {
+        headers: {
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+        },
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        req.log.error({ status: res.status, body: errText }, 'Anthropic API key validation failed');
+        return reply.status(401).send({ error: 'Invalid Anthropic API key.' });
+      }
+
+      // Create session
+      const sessionId = nanoid(32);
+      sessionStore.set(sessionId, {
+        provider: 'anthropic',
+        anthropicApiKey: apiKey,
+        anthropicUser: { name: 'Anthropic User' },
+        createdAt: Date.now(),
+      });
+
+      reply.setCookie('session', sessionId, {
+        httpOnly: true,
+        secure: env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 8 * 60 * 60, // 8 hours
+      });
+
+      return reply.send({
+        status: 'complete',
+        provider: 'anthropic',
+        anthropicUser: { name: 'Anthropic User' },
+      });
+    } catch (err) {
+      req.log.error({ err }, 'Anthropic login error');
+      return reply.status(502).send({ error: 'Failed to validate Anthropic API key.' });
+    }
+  });
+
   // ─── Start Device Flow ────────────────────────────────────
   app.post<{ Body: { client_id?: string } }>('/device-code', async (req, reply) => {
     const clientId = req.body?.client_id || env.GITHUB_CLIENT_ID;
@@ -90,6 +140,7 @@ export async function authRoutes(app: FastifyInstance) {
     // Create session
     const sessionId = nanoid(32);
     sessionStore.set(sessionId, {
+      provider: 'github',
       githubToken: accessToken,
       user,
       createdAt: Date.now(),
@@ -119,7 +170,12 @@ export async function authRoutes(app: FastifyInstance) {
       return reply.send({ authenticated: false });
     }
 
-    return reply.send({ authenticated: true, user: session.user });
+    return reply.send({
+      authenticated: true,
+      provider: session.provider,
+      user: session.user,
+      anthropicUser: session.anthropicUser,
+    });
   });
 
   // ─── Logout ───────────────────────────────────────────────

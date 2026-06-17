@@ -1,4 +1,4 @@
-﻿# Process Migration Guide
+# Process Migration Guide
 
 Use this guide when the migration centers on `dt.entity.process_group_instance` or `dt.entity.process_group`.
 

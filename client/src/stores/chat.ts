@@ -249,13 +249,22 @@ export const useChatStore = create<ChatState>((set, get) => ({
                 timestamp: Date.now(),
               });
             } else if (event.type === 'tool_call') {
-              // Show tool call indicator in the message
-              if (event.status === 'calling') {
-                get().appendToMessage(assistantId, `\n\n> **Calling tool:** \`${event.toolName}\`...\n`);
-              } else if (event.status === 'done') {
-                get().appendToMessage(assistantId, `> Tool \`${event.toolName}\` completed.\n\n`);
-              } else if (event.status === 'error') {
-                get().appendToMessage(assistantId, `> Tool \`${event.toolName}\` failed: ${event.error}\n\n`);
+              // Add completed/failed tool calls to the activity log (skip 'calling' to avoid duplicates)
+              if (event.status !== 'calling') {
+                const isSkillTool = event.toolName === 'load_dynatrace_skill' || event.toolName === 'load_dynatrace_skill_reference';
+                const displayName = isSkillTool && event.detail
+                  ? event.detail
+                  : event.toolName ?? 'unknown';
+                const summary = event.status === 'done'
+                  ? (isSkillTool ? 'Loaded' : 'Completed')
+                  : `Error: ${event.error ?? 'unknown'}`;
+                get().addMCPActivity(assistantId, {
+                  id: nanoid(),
+                  direction: event.status === 'done' ? 'received' : 'sent',
+                  toolName: displayName,
+                  summary,
+                  timestamp: Date.now(),
+                });
               }
             } else if (event.type === 'error') {
               get().appendToMessage(assistantId, `\n\nError: ${event.error}`);

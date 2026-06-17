@@ -1,4 +1,4 @@
-﻿# AWS Serverless & Container Workloads
+# AWS Serverless & Container Workloads
 
 Monitor AWS Lambda, ECS, EKS, and App Runner services.
 

@@ -1,4 +1,4 @@
-﻿# Container Migration Guide
+# Container Migration Guide
 
 Use this guide when the migration centers on `dt.entity.container_group_instance` or `dt.entity.container_group`.
 
